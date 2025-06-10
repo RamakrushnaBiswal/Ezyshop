@@ -52,12 +52,12 @@ export function MainNav({ className, theme }: MainNavProps) {
     },
     { href: `/Blog`, label: "Blog", active: pathname.startsWith(`/Blog`) },
     {
-      href: session.status === "unauthenticated" ? "#" : `/MyOrders`,
+      href: session.status == "unauthenticated" ? "#" : `/MyOrders`,
       label: "Orders",
       active: pathname.startsWith(`/MyOrders`),
       onClick: (e: React.MouseEvent) => {
         e.preventDefault();
-        if (session.status === "unauthenticated") {
+        if (session.status == "unauthenticated") {
           toast.error("Please login as a Customer first");
         } else {
           router.push("/MyOrders");
@@ -65,7 +65,7 @@ export function MainNav({ className, theme }: MainNavProps) {
       },
     },
     {
-      href: session.status === "unauthenticated" ? "#" : `/WishList`,
+      href: session.status == "unauthenticated" ? "#" : `/WishList`,
       label: "Wishlist",
       active: pathname.startsWith(`/WishList`),
       logo: (
@@ -77,7 +77,7 @@ export function MainNav({ className, theme }: MainNavProps) {
       ),
       onClick: (e: React.MouseEvent) => {
         e.preventDefault();
-        if (session.status === "unauthenticated") {
+        if (session.status == "unauthenticated") {
           toast.error("Please login as a Customer first");
         } else {
           router.push("/WishList");
@@ -85,7 +85,7 @@ export function MainNav({ className, theme }: MainNavProps) {
       },
     },
     {
-      href: session.status === "unauthenticated" ? "#" : `/Cart`,
+      href: session.status == "unauthenticated" ? "#" : `/Cart`,
       label: "Cart",
       active: pathname.startsWith(`/Cart`),
       logo: (
@@ -97,7 +97,7 @@ export function MainNav({ className, theme }: MainNavProps) {
       ),
       onClick: (e: React.MouseEvent) => {
         e.preventDefault();
-        if (session.status === "unauthenticated") {
+        if (session.status == "unauthenticated") {
           toast.error("Please login as a Customer first");
         } else {
           router.push("/Cart");
@@ -112,25 +112,17 @@ export function MainNav({ className, theme }: MainNavProps) {
   ];
 
   return (
-    <nav className={cn("sticky top-0 z-50 bg-white dark:bg-black shadow-sm px-4 py-3", className)}>
-      {/* Top bar */}
-      <div className="flex items-center justify-between">
-        {/* Left section - Mobile toggle & Mode */}
-        <div className="lg:hidden flex items-center gap-2">
-          <ModeToggle />
-          <button onClick={toggleMenu} className="focus:outline-none">
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Desktop navigation */}
-        <div className="hidden lg:flex items-center gap-6">
+    <nav className={cn("w-full z-50", className)}>
+      {/* Desktop Navigation */}
+      <div className="hidden lg:flex justify-between items-center px-6 py-3 shadow-md bg-white dark:bg-black">
+        <div className="flex items-center gap-6">
           {routes.map((route) => (
             <Link
               key={route.href}
               href={route.href}
+              onClick={route.onClick}
               className={cn(
-                "flex items-center gap-1 font-semibold text-base transition-colors",
+                "flex items-center gap-2 text-lg font-semibold",
                 route.active
                   ? `${theme === "dark" ? "text-gray-300" : "text-customTeal"}`
                   : `${theme === "dark" ? "text-gray-400" : "text-customBlue"}`,
@@ -138,49 +130,61 @@ export function MainNav({ className, theme }: MainNavProps) {
                   ? "hover:text-white"
                   : "hover:text-customTeal"
               )}
-              onClick={route.onClick}
             >
               {route.logo && <span>{route.logo}</span>}
               {route.label}
             </Link>
           ))}
+        </div>
+        <div className="flex items-center gap-4">
           <ModeToggle />
           <AuthButtons toggleMenu={toggleMenu} />
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
+      {/* Mobile Nav - Toggle & Drawer */}
+      <div className="lg:hidden flex justify-between items-center px-4 py-3 shadow-md bg-white dark:bg-black">
+        <ModeToggle />
+        <button onClick={toggleMenu} className="text-black dark:text-white">
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Dropdown */}
       <div
         className={cn(
-          "lg:hidden transition-all duration-300 ease-in-out overflow-hidden",
-          isOpen
-            ? "max-h-screen opacity-100 py-4 px-6 space-y-4"
-            : "max-h-0 opacity-0"
+          "lg:hidden fixed top-16 left-0 w-full bg-white dark:bg-black shadow-md transition-all duration-300 overflow-hidden z-40",
+          isOpen ? "max-h-[600px] opacity-100 py-4 px-6" : "max-h-0 opacity-0"
         )}
       >
-        {routes.map((route) => (
-          <Link
-            key={route.href}
-            href={route.href}
-            className={cn(
-              "block font-semibold text-base text-center transition-colors",
-              route.active
-                ? `${theme === "dark" ? "text-gray-300" : "text-customTeal"}`
-                : `${theme === "dark" ? "text-gray-400" : "text-customBlue"}`,
-              theme === "dark"
-                ? "hover:text-white"
-                : "hover:text-customTeal"
-            )}
-            onClick={(e) => {
-              toggleMenu();
-              if (route.onClick) route.onClick(e);
-            }}
-          >
-            {route.logo && <span className="inline-block mr-1">{route.logo}</span>}
-            {route.label}
-          </Link>
-        ))}
-        <AuthButtons toggleMenu={toggleMenu} />
+        <div className="flex flex-col gap-4 text-center">
+          {routes.map((route) => (
+            <Link
+              key={route.href}
+              href={route.href}
+              onClick={(e) => {
+                toggleMenu();
+                route.onClick?.(e);
+              }}
+              className={cn(
+                "flex justify-center items-center gap-2 text-lg font-bold",
+                route.active
+                  ? `${theme === "dark" ? "text-gray-300" : "text-customTeal"}`
+                  : `${theme === "dark" ? "text-gray-400" : "text-customBlue"}`,
+                theme === "dark"
+                  ? "hover:text-white"
+                  : "hover:text-customTeal"
+              )}
+            >
+              {route.logo && <span>{route.logo}</span>}
+              {route.label}
+            </Link>
+          ))}
+
+          <div className="mt-4">
+            <AuthButtons toggleMenu={toggleMenu} />
+          </div>
+        </div>
       </div>
     </nav>
   );
